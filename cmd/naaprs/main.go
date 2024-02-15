@@ -7,8 +7,12 @@ import (
 	"github.com/ottolote/naaprs/pkg/aprs"
 )
 
+var Version string
+
 
 func main() {
+	fmt.Println("naaprs version ", Version)
+
 	currentWeather := weather.GetWeatherData("netatmo")
 	fmt.Printf("weather: %+v\n", currentWeather)
 

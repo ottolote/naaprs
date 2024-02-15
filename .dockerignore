@@ -1,0 +1,26 @@
+# Exclude all files by default
+**
+
+# Allow specific directories and files
+!cmd/
+!internal/
+!pkg/
+!go.mod
+!go.sum
+!*.go
+
+# Exclude directories and files that are not needed in the Docker image
+.git/
+.gitignore
+.dockerignore
+Dockerfile
+**/*.md
+**/*.test.go
+tests/
+examples/
+scripts/
+Makefile
+*.log
+tmp/
+vendor/
+

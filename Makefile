@@ -14,7 +14,7 @@ DOCKER_REGISTRY = ottokl
 DOCKER_REPO = $(DOCKER_REGISTRY)/$(BINARY_NAME)
 DOCKER_IMAGE = $(DOCKER_REPO):$(VERSION)
 
-PLATFORMS = linux/amd64 linux/386 linux/arm/v7 linux/arm64/v8
+PLATFORMS = linux/amd64 linux/386 linux/arm/v6 linux/arm/v7 linux/arm64/v8
 
 build: clean $(BIN_DIR)/$(BINARY_NAME)
 
@@ -26,7 +26,13 @@ push: docker-build docker-push docker-push-multi-arch
 push-latest: docker-build docker-push docker-push-multi-arch-latest
 
 docker-build:
-	$(foreach platform,$(PLATFORMS),docker buildx build --platform $(platform) -t $(DOCKER_IMAGE)-$(subst /,-,$(platform)) --load .;)
+	$(foreach platform,$(PLATFORMS),\
+	docker buildx build \
+	--build-arg LDFLAGS="$(LDFLAGS)" \
+	--build-arg GOOS=$(word 1,$(subst /, ,$(platform))) \
+	--build-arg GOARCH=$(word 2,$(subst /, ,$(platform))) \
+	--build-arg GOARM=$(if $(findstring arm/,$(platform)),$(subst v,,$(word 3,$(subst /, ,$(platform)))),) \
+	--platform $(platform) -t $(DOCKER_IMAGE)-$(subst /,-,$(platform)) --load .;)
 
 docker-push:
 	$(foreach platform,$(PLATFORMS),docker push $(DOCKER_IMAGE)-$(subst /,-,$(platform));)
