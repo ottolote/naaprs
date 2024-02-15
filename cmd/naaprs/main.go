@@ -11,7 +11,7 @@ var Version string
 
 
 func main() {
-	fmt.Println("naaprs version ", Version)
+	fmt.Printf("naaprs started version: %s\n", Version)
 
 	currentWeather := weather.GetWeatherData("netatmo")
 	fmt.Printf("weather: %+v\n", currentWeather)

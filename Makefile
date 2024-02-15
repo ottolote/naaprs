@@ -1,5 +1,5 @@
 VERSION := $(shell git describe --tags --always --dirty)
-LDFLAGS := -X main.version=$(VERSION)
+LDFLAGS := -X main.Version=$(VERSION)
 
 GOCMD = go
 GOBUILD = $(GOCMD) build
