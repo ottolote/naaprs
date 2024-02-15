@@ -14,35 +14,39 @@ DOCKER_REGISTRY = ottokl
 DOCKER_REPO = $(DOCKER_REGISTRY)/$(BINARY_NAME)
 DOCKER_IMAGE = $(DOCKER_REPO):$(VERSION)
 
-PLATFORMS = linux/amd64 linux/386 linux/arm/v6 linux/arm/v7 linux/arm64/v8
+PLATFORMS = linux/amd64 linux/386 linux/arm/v6 linux/arm/v7 linux/arm64
+BUILD_TARGETS = $(addprefix build-, $(PLATFORMS))
+PUSH_TARGETS = $(addprefix push-, $(PLATFORMS))
 
+# Main targets
 build: clean $(BIN_DIR)/$(BINARY_NAME)
 
 $(BIN_DIR)/$(BINARY_NAME):
 	$(GOBUILD) -ldflags "$(LDFLAGS)" -o $@ $(CMD_DIR)/naaprs/main.go
 
-push: docker-build docker-push docker-push-multi-arch
+push: $(BUILD_TARGETS) $(PUSH_TARGETS) docker-push-multi-arch
 
-push-latest: docker-build docker-push docker-push-multi-arch-latest
+push-latest: push docker-push-multi-arch-latest
 
-docker-build:
-	$(foreach platform,$(PLATFORMS),\
+# Docker build and push targets
+$(BUILD_TARGETS):
+	platform=$$(echo $@ | sed 's/build-//'); \
 	docker buildx build \
 	--build-arg LDFLAGS="$(LDFLAGS)" \
-	--build-arg GOOS=$(word 1,$(subst /, ,$(platform))) \
-	--build-arg GOARCH=$(word 2,$(subst /, ,$(platform))) \
-	--build-arg GOARM=$(if $(findstring arm/,$(platform)),$(subst v,,$(word 3,$(subst /, ,$(platform)))),) \
-	--platform $(platform) -t $(DOCKER_IMAGE)-$(subst /,-,$(platform)) --load .;)
+	--build-arg GOOS=$$(echo $$platform | cut -d/ -f1) \
+	--build-arg GOARCH=$$(echo $$platform | cut -d/ -f2) \
+	--build-arg GOARM=$$(echo $$platform | cut -d/ -f3 | sed 's/v//') \
+	--platform $$platform -t $(DOCKER_IMAGE)-$$(echo $$platform | tr '/' '-') --load .
 
-docker-push:
-	$(foreach platform,$(PLATFORMS),docker push $(DOCKER_IMAGE)-$(subst /,-,$(platform));)
+$(PUSH_TARGETS): push-%: build-%
+	docker push $(DOCKER_IMAGE)-$$(echo $* | tr '/' '-')
 
 docker-push-multi-arch:
-	docker manifest create $(DOCKER_IMAGE) $(foreach platform,$(PLATFORMS),--amend $(DOCKER_IMAGE)-$(subst /,-,$(platform)))
+	docker manifest create $(DOCKER_IMAGE) $(foreach platform,$(PLATFORMS),--amend $(DOCKER_IMAGE)-$$(echo $(platform) | tr '/' '-'))
 	docker manifest push $(DOCKER_IMAGE)
 
 docker-push-multi-arch-latest:
-	docker manifest create $(DOCKER_REPO):latest $(foreach platform,$(PLATFORMS),--amend $(DOCKER_IMAGE)-$(subst /,-,$(platform)))
+	docker manifest create $(DOCKER_REPO):latest $(foreach platform,$(PLATFORMS),--amend $(DOCKER_IMAGE)-$$(echo $(platform) | tr '/' '-'))
 	docker manifest push $(DOCKER_REPO):latest
 
 clean:
@@ -58,5 +62,5 @@ deps:
 run:
 	./$(BIN_DIR)/$(BINARY_NAME)
 
-.PHONY: build clean test deps run push push-latest docker-build docker-push docker-push-multi-arch docker-push-multi-arch-latest
+.PHONY: build clean test deps run push push-latest docker-push-multi-arch docker-push-multi-arch-latest $(BUILD_TARGETS) $(PUSH_TARGETS)
 
