@@ -3,14 +3,16 @@ package main
 import (
 	"fmt"
 
-	"github.com/ottolote/naaprs/pkg/weather"
 	"github.com/ottolote/naaprs/pkg/aprs"
+	"github.com/ottolote/naaprs/pkg/weather"
 )
 
 var Version string
 
-
 func main() {
+	if Version == "" {
+		Version = "unset"
+	}
 	fmt.Printf("naaprs started version: %s\n", Version)
 
 	currentWeather := weather.GetWeatherData("netatmo")
