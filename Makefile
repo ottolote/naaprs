@@ -42,10 +42,12 @@ $(PUSH_TARGETS): push-%: build-%
 	docker push $(DOCKER_IMAGE)-$$(echo $* | tr '/' '-')
 
 docker-push-multi-arch: $(PUSH_TARGETS)
+	- docker manifest rm $(DOCKER_IMAGE) 2>/dev/null
 	docker manifest create $(DOCKER_IMAGE) $(foreach platform,$(PLATFORMS),--amend $(DOCKER_IMAGE)-$$(echo $(platform) | tr '/' '-'))
 	docker manifest push $(DOCKER_IMAGE)
 
 docker-push-multi-arch-latest: $(PUSH_TARGETS)
+	- docker manifest rm $(DOCKER_REPO):latest 2>/dev/null
 	docker manifest create $(DOCKER_REPO):latest $(foreach platform,$(PLATFORMS),--amend $(DOCKER_IMAGE)-$$(echo $(platform) | tr '/' '-'))
 	docker manifest push $(DOCKER_REPO):latest
 
