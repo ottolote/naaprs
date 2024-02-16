@@ -9,9 +9,12 @@ ARG LDFLAGS
 ENV GOPROXY $GOPROXY
 
 WORKDIR /app
-# COPY go.mod go.sum ./
-# RUN go mod download
-COPY . .
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY cmd/ cmd/
+COPY pkg/ pkg/
 
 RUN CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} GOARM=${GOARM} go build -ldflags "${LDFLAGS}" -o naaprs cmd/naaprs/main.go
 
