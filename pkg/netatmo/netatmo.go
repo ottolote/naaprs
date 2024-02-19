@@ -3,25 +3,15 @@ package netatmo
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"time"
 
+	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 )
-
-type config struct {
-	auth *oauth2.Config
-
-	clientID     string
-	clientSecret string
-	refreshToken string
-}
 
 type ApiResponse struct {
 	Body struct {
@@ -39,10 +29,10 @@ type Device struct {
 }
 
 type Place struct {
-	Altitude    int 	`json:"altimeter"`
-	City        string      `json:"city"`
-	Country     string      `json:"country"`
-	Location    []float64   `json:"location"`
+	Altitude int       `json:"altimeter"`
+	City     string    `json:"city"`
+	Country  string    `json:"country"`
+	Location []float64 `json:"location"`
 }
 
 type DashboardData struct {
@@ -79,11 +69,11 @@ type ModuleData struct {
 	StationName     string
 	HomeName        string
 	HomeID          string
-	Lat 		float64
-	Lon 		float64
-	ModuleID        string
-	ModuleName      string
-	ModuleType      string
+	Lat             float64
+	Lon             float64
+	ID        	string
+	Name      	string
+	Type      	string
 	DataType        []string
 	Timestamp       time.Time
 	Altimeter       float64
@@ -115,11 +105,11 @@ func (nc *NetatmoClient) unmarshalModuleData(body []byte) ([]ModuleData, error) 
 				StationName:     device.StationName,
 				HomeName:        device.HomeName,
 				HomeID:          device.HomeID,
-				Lat: 		 device.Place.Location[1],
-				Lon:		 device.Place.Location[0],
-				ModuleID:        module.ID,
-				ModuleName:      module.ModuleName,
-				ModuleType:      module.Type,
+				Lat:             device.Place.Location[1],
+				Lon:             device.Place.Location[0],
+				ID:        	 module.ID,
+				Name:      	 module.ModuleName,
+				Type:      	 module.Type,
 				DataType:        module.DataType,
 				Timestamp:       time.Unix(module.DashboardData.TimeUTC, 0),
 				Altimeter:       device.DashboardData.AbsolutePressure,
@@ -159,8 +149,6 @@ func (nc *NetatmoClient) GetModuleData() ([]ModuleData, error) {
 		return nil, err
 	}
 
-	fmt.Printf("moduledata: %+v", moduleData)
-
 	return moduleData, nil
 }
 
@@ -189,69 +177,27 @@ func (nc *NetatmoClient) newRequest(method, relativePath string) (*http.Request,
 	return req, nil
 }
 
-func getEnvOrError(name string) (string, error) {
-	value := os.Getenv(name)
-	if value == "" {
-		return "", errors.New("environment variable not set: " + name)
-	}
-	return value, nil
-}
-
-func GetConfig() *config {
+func GetNetatmoClient(ctx context.Context) *NetatmoClient {
 	oauth := &oauth2.Config{
-		ClientID:     os.Getenv("NETATMO_CLIENT_ID"),
-		ClientSecret: os.Getenv("NETATMO_CLIENT_SECRET"),
+		ClientID:     viper.GetString("netatmo_client_id"),
+		ClientSecret: viper.GetString("netatmo_client_secret"),
 		Scopes:       []string{"read_station"},
 		Endpoint: oauth2.Endpoint{
 			AuthURL:  "https://api.netatmo.com/oauth2/authorize",
 			TokenURL: "https://api.netatmo.com/oauth2/token",
 		},
 	}
-
-	clientID, err := getEnvOrError("NETATMO_CLIENT_ID")
-	if err != nil {
-		log.Fatalf("Missing configuration: %v", err)
-	}
-	clientSecret, err := getEnvOrError("NETATMO_CLIENT_SECRET")
-	if err != nil {
-		log.Fatalf("Missing configuration: %v", err)
-	}
-	refreshToken, err := getEnvOrError("NETATMO_REFRESH_TOKEN")
-	if err != nil {
-		log.Fatalf("Missing configuration: %v", err)
-	}
-
-	return &config{
-		auth: oauth,
-
-		clientID:     clientID,
-		clientSecret: clientSecret,
-		refreshToken: refreshToken,
-	}
-}
-
-func (c *config) GetNetatmoClient(ctx context.Context) *NetatmoClient {
 
 	netatmoClient := &NetatmoClient{
 		baseURL: "https://api.netatmo.com/api",
 	}
 
-	c.auth = &oauth2.Config{
-		ClientID:     os.Getenv("NETATMO_CLIENT_ID"),
-		ClientSecret: os.Getenv("NETATMO_CLIENT_SECRET"),
-		Scopes:       []string{"read_station"},
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://api.netatmo.com/oauth2/authorize",
-			TokenURL: "https://api.netatmo.com/oauth2/token",
-		},
-	}
-
-	userRefreshToken := os.Getenv("NETATMO_REFRESH_TOKEN")
+	userRefreshToken := viper.GetString("netatmo_refresh_token")
 	if userRefreshToken == "" {
 		log.Fatalf("No refresh token supplied")
 	}
 
-	tokenSource := c.auth.TokenSource(ctx, &oauth2.Token{
+	tokenSource := oauth.TokenSource(ctx, &oauth2.Token{
 		RefreshToken: userRefreshToken,
 	})
 
@@ -261,7 +207,7 @@ func (c *config) GetNetatmoClient(ctx context.Context) *NetatmoClient {
 	}
 
 	// Create an HTTP client using the token
-	netatmoClient.client = c.auth.Client(ctx, tok)
+	netatmoClient.client = oauth.Client(ctx, tok)
 
 	return netatmoClient
 }
@@ -269,8 +215,7 @@ func (c *config) GetNetatmoClient(ctx context.Context) *NetatmoClient {
 func GetAllModules() []ModuleData {
 	ctx := context.Background()
 
-	c := GetConfig()
-	client := c.GetNetatmoClient(ctx)
+	client := GetNetatmoClient(ctx)
 
 	moduleData, err := client.GetModuleData()
 	if err != nil {

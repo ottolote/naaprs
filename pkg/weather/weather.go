@@ -4,12 +4,13 @@ import (
 	"time"
 
 	"github.com/ottolote/naaprs/pkg/netatmo"
+	"github.com/spf13/viper"
 )
 
 type WeatherReport struct {
 	Timestamp       time.Time
-	Lat 		float64
-	Lon 		float64
+	Lat             float64
+	Lon             float64
 	Altimeter       float64
 	Humidity        int
 	RainLastHour    float64
@@ -31,7 +32,7 @@ func containsString(haystack []string, needle string) bool {
 	return false
 }
 
-func filterModules(modules []netatmo.ModuleData, dataType string) []netatmo.ModuleData {
+func filterModulesByDataType(modules []netatmo.ModuleData, dataType string) []netatmo.ModuleData {
 	var result []netatmo.ModuleData
 	for _, module := range modules {
 		if containsString(module.DataType, dataType) {
@@ -42,19 +43,57 @@ func filterModules(modules []netatmo.ModuleData, dataType string) []netatmo.Modu
 	return result
 }
 
+func filterModulesByName(modules []netatmo.ModuleData, name string) []netatmo.ModuleData {
+	var result []netatmo.ModuleData
+	for _, module := range modules {
+		if module.Name == name {
+			result = append(result, module)
+		}
+	}
+
+	return result
+}
+
 func GetWeatherData(source string) *WeatherReport {
 	netatmoModules := netatmo.GetAllModules()
 
-	rainModules := filterModules(netatmoModules, "Rain")
-	humidityModules := filterModules(netatmoModules, "Humidity")
-	temperatureModules := filterModules(netatmoModules, "Temperature")
-	windModules := filterModules(netatmoModules, "Wind")
+	rainModules := filterModulesByDataType(netatmoModules, "Rain")
+	humidityModules := filterModulesByDataType(netatmoModules, "Humidity")
+	temperatureModules := filterModulesByDataType(netatmoModules, "Temperature")
+	windModules := filterModulesByDataType(netatmoModules, "Wind")
 
-	// TODO: allow configuration of which module to use, for now just pick first available
-	rain := rainModules[0]
-	humidity := humidityModules[0]
-	temperature := temperatureModules[0]
-	wind := windModules[0]
+
+	sourceRain := viper.GetString("SOURCE_RAIN")
+	var rain netatmo.ModuleData
+	if sourceRain == "" {
+		rain = rainModules[0]
+	} else {
+		rain = filterModulesByName(netatmoModules, sourceRain)[0]
+	}
+
+	sourceWind := viper.GetString("SOURCE_WIND")
+	var wind netatmo.ModuleData
+	if sourceWind == "" {
+		wind = windModules[0]
+	} else {
+		wind = filterModulesByName(netatmoModules, sourceWind)[0]
+	}
+
+	sourceTemperature := viper.GetString("SOURCE_TEMPERATURE")
+	var temperature netatmo.ModuleData
+	if sourceTemperature == "" {
+		temperature = temperatureModules[0]
+	} else {
+		temperature = filterModulesByName(netatmoModules, sourceTemperature)[0]
+	}
+
+	sourceHumidity := viper.GetString("SOURCE_HUMIDITY")
+	var humidity netatmo.ModuleData
+	if sourceHumidity == "" {
+		humidity = humidityModules[0]
+	} else {
+		humidity = filterModulesByName(netatmoModules, sourceHumidity)[0]
+	}
 
 	return &WeatherReport{
 		Timestamp: time.Now(),
