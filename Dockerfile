@@ -19,6 +19,8 @@ COPY pkg/ pkg/
 RUN CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} GOARM=${GOARM} go build -ldflags "${LDFLAGS}" -o naaprs cmd/naaprs/main.go
 
 FROM scratch
+
 COPY --from=builder /app/naaprs /naaprs
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 CMD ["/naaprs"]
