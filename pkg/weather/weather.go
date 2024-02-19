@@ -62,7 +62,6 @@ func GetWeatherData(source string) *WeatherReport {
 	temperatureModules := filterModulesByDataType(netatmoModules, "Temperature")
 	windModules := filterModulesByDataType(netatmoModules, "Wind")
 
-
 	sourceRain := viper.GetString("SOURCE_RAIN")
 	var rain netatmo.ModuleData
 	if sourceRain == "" {

@@ -71,9 +71,9 @@ type ModuleData struct {
 	HomeID          string
 	Lat             float64
 	Lon             float64
-	ID        	string
-	Name      	string
-	Type      	string
+	ID              string
+	Name            string
+	Type            string
 	DataType        []string
 	Timestamp       time.Time
 	Altimeter       float64
@@ -107,9 +107,9 @@ func (nc *NetatmoClient) unmarshalModuleData(body []byte) ([]ModuleData, error) 
 				HomeID:          device.HomeID,
 				Lat:             device.Place.Location[1],
 				Lon:             device.Place.Location[0],
-				ID:        	 module.ID,
-				Name:      	 module.ModuleName,
-				Type:      	 module.Type,
+				ID:              module.ID,
+				Name:            module.ModuleName,
+				Type:            module.Type,
 				DataType:        module.DataType,
 				Timestamp:       time.Unix(module.DashboardData.TimeUTC, 0),
 				Altimeter:       device.DashboardData.AbsolutePressure,

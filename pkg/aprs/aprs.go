@@ -11,7 +11,7 @@ import (
 )
 
 func kmhToMph(speed float64) float64 {
-	return speed/1.609344
+	return speed / 1.609344
 }
 
 func celciusToFahrenheit(celcius int) int {
@@ -24,7 +24,7 @@ func millimeterToInchHundredths(mm float64) float64 {
 
 func CreateWx(wr *weather.WeatherReport) *aprs.Wx {
 	wx := &aprs.Wx{
-		Type: 		 "natm",
+		Type:            "natm",
 		Timestamp:       wr.Timestamp,
 		Altimeter:       wr.Altimeter,
 		Humidity:        wr.Humidity,
