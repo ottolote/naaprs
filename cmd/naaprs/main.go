@@ -54,9 +54,9 @@ func configure() {
 }
 
 func main() {
-	configure()
-
 	fmt.Printf(Logo)
+
+	configure()
 
 	if Version == "" {
 		Version = "unset"
