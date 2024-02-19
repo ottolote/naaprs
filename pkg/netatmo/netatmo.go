@@ -29,7 +29,7 @@ type Device struct {
 }
 
 type Place struct {
-	Altitude int       `json:"altimeter"`
+	Altitude float64   `json:"altimeter"`
 	City     string    `json:"city"`
 	Country  string    `json:"country"`
 	Location []float64 `json:"location"`
@@ -38,8 +38,8 @@ type Place struct {
 type DashboardData struct {
 	TimeUTC          int64   `json:"time_utc"`
 	Temperature      float64 `json:"Temperature"`
-	CO2              int     `json:"CO2"`
-	Humidity         int     `json:"Humidity"`
+	CO2              float64 `json:"CO2"`
+	Humidity         float64 `json:"Humidity"`
 	Pressure         float64 `json:"Pressure"`
 	AbsolutePressure float64 `json:"AbsolutePressure"`
 }
@@ -58,11 +58,11 @@ type ModuleDashboardData struct {
 	SumRain1     float64 `json:"sum_rain_1,omitempty"`
 	SumRain24    float64 `json:"sum_rain_24,omitempty"`
 	Temperature  float64 `json:"Temperature,omitempty"`
-	Humidity     int     `json:"Humidity,omitempty"`
-	WindStrength int     `json:"WindStrength,omitempty"`
-	WindAngle    int     `json:"WindAngle,omitempty"`
-	GustStrength int     `json:"GustStrength,omitempty"`
-	GustAngle    int     `json:"GustAngle,omitempty"`
+	Humidity     float64 `json:"Humidity,omitempty"`
+	WindStrength float64 `json:"WindStrength,omitempty"`
+	WindAngle    float64 `json:"WindAngle,omitempty"`
+	GustStrength float64 `json:"GustStrength,omitempty"`
+	GustAngle    float64 `json:"GustAngle,omitempty"`
 }
 
 type ModuleData struct {
@@ -77,13 +77,13 @@ type ModuleData struct {
 	DataType        []string
 	Timestamp       time.Time
 	Altimeter       float64
-	Humidity        int
+	Humidity        float64
 	RainLastHour    float64
 	RainLast24Hours float64
 	Temp            float64
-	WindDir         int
-	WindGust        int
-	WindSpeed       int
+	WindDir         float64
+	WindGust        float64
+	WindSpeed       float64
 }
 
 type NetatmoClient struct {

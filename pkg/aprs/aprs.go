@@ -14,8 +14,8 @@ func kmhToMph(speed float64) float64 {
 	return speed / 1.609344
 }
 
-func celciusToFahrenheit(celcius int) int {
-	return int((float64(celcius) * float64(1.8))) + 32
+func celciusToFahrenheit(celcius float64) float64 {
+	return (celcius * 1.8) + 32
 }
 
 func millimeterToInchHundredths(mm float64) float64 {
@@ -27,15 +27,14 @@ func CreateWx(wr *weather.WeatherReport) *aprs.Wx {
 		Type:            "natm",
 		Timestamp:       wr.Timestamp,
 		Altimeter:       wr.Altimeter,
-		Humidity:        wr.Humidity,
+		Humidity:        int(wr.Humidity),
 		Lat:             wr.Lat,
 		Lon:             wr.Lon,
 		RainLastHour:    millimeterToInchHundredths(wr.RainLastHour),
 		RainLast24Hours: millimeterToInchHundredths(wr.RainLast24Hours),
 		RainToday:       millimeterToInchHundredths(wr.RainToday),
-		SolarRad:        wr.SolarRad,
-		Temp:            celciusToFahrenheit(wr.Temp),
-		WindDir:         wr.WindDir,
+		Temp:            int(celciusToFahrenheit(wr.Temp)),
+		WindDir:         int(wr.WindDir),
 		WindGust:        int(kmhToMph(float64(wr.WindGust))),
 		WindSpeed:       int(kmhToMph(float64(wr.WindSpeed))),
 	}

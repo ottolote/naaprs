@@ -12,15 +12,14 @@ type WeatherReport struct {
 	Lat             float64
 	Lon             float64
 	Altimeter       float64
-	Humidity        int
+	Humidity        float64
 	RainLastHour    float64
 	RainLast24Hours float64
 	RainToday       float64
-	SolarRad        int
-	Temp            int
-	WindDir         int
-	WindGust        int
-	WindSpeed       int
+	Temp            float64
+	WindDir         float64
+	WindGust        float64
+	WindSpeed       float64
 }
 
 func containsString(haystack []string, needle string) bool {
@@ -103,7 +102,7 @@ func GetWeatherData(source string) *WeatherReport {
 		Humidity:        humidity.Humidity,
 		RainLast24Hours: rain.RainLast24Hours,
 		RainLastHour:    rain.RainLastHour,
-		Temp:            int(temperature.Temp),
+		Temp:            temperature.Temp,
 
 		WindDir:   wind.WindDir,
 		WindGust:  wind.WindGust,
