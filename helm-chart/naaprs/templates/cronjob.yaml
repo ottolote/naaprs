@@ -1,0 +1,60 @@
+{{- if .Values.env.ONESHOT }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "naaprs.fullname" . }}
+  labels:
+    {{- include "naaprs.labels" . | nindent 4 }}
+spec:
+  schedule: {{ include "naaprs.scheduleFromInterval" . | quote }}
+  failedJobsHistoryLimit: {{ .Values.cronJob.failedJobsHistoryLimit | default 3 }}
+  successfulJobsHistoryLimit: {{ .Values.cronJob.successfulJobsHistoryLimit | default 1 }}
+  concurrencyPolicy: {{ .Values.cronJob.concurrencyPolicy | default "Replace" }}
+  startingDeadlineSeconds: {{ .Values.cronJob.startingDeadlineSeconds | default nil }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: {{ include "naaprs.serviceAccountName" . }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          containers:
+            - name: {{ .Chart.Name }}
+              securityContext:
+                {{- toYaml .Values.securityContext | nindent 16 }}
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              envFrom:
+              - configMapRef:
+                  name: {{ include "naaprs.fullname" . }}-config
+              - secretRef:
+                  name: {{ include "naaprs.fullname" . }}-secret
+              resources:
+                {{- toYaml .Values.resources | nindent 16 }}
+              {{- with .Values.volumeMounts }}
+              volumeMounts:
+                {{- toYaml . | nindent 10 }}
+              {{- end }}
+          restartPolicy: OnFailure
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 8 }}
+          {{- end }}
+          {{- with .Values.volumes }}
+          volumes:
+            {{- toYaml . | nindent 8 }}
+          {{- end }}
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 8 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 8 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 8 }}
+          {{- end }}
+{{- end }}
+
