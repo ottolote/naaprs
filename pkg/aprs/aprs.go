@@ -23,10 +23,11 @@ func millimeterToInchHundredths(mm float64) float64 {
 }
 
 func CreateWx(wr *weather.WeatherReport) *aprs.Wx {
+	fmt.Printf("altimeter: %+v\n", wr.Altimeter)
 	wx := &aprs.Wx{
 		Type:            "natm",
 		Timestamp:       wr.Timestamp,
-		Altimeter:       wr.Altimeter,
+		Altimeter:       wr.Altimeter * 0.0295301, // Convert mbar to inches of mercury
 		Humidity:        int(wr.Humidity),
 		Lat:             wr.Lat,
 		Lon:             wr.Lon,
@@ -45,9 +46,13 @@ func SendWeatherData(wr *weather.WeatherReport) {
 	wx := CreateWx(wr)
 
 	callsign := viper.GetString("CALLSIGN")
+	tocall := viper.GetString("TOCALL")
+	if tocall == "" {
+		tocall = "APZ001"
+	}
 
 	f := aprs.Frame{
-		Dst:  aprs.Addr{Call: callsign},
+		Dst:  aprs.Addr{Call: tocall},
 		Src:  aprs.Addr{Call: fmt.Sprintf("%s-13", callsign)},
 		Path: aprs.Path{aprs.Addr{Call: "TCPIP", Repeated: true}},
 		Text: wx.String(),

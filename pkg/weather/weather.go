@@ -99,6 +99,7 @@ func GetWeatherData(source string) *WeatherReport {
 		Lat: wind.Lat,
 		Lon: wind.Lon,
 
+		Altimeter:       netatmoModules[0].Altimeter,
 		Humidity:        humidity.Humidity,
 		RainLast24Hours: rain.RainLast24Hours,
 		RainLastHour:    rain.RainLastHour,

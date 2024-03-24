@@ -30,6 +30,7 @@ type ConfigOption struct {
 func configure() {
 	options := []ConfigOption{
 		{"CALLSIGN", true},
+		{"TOCALL", false},
 		{"INTERVAL", false},
 		{"NETATMO_CLIENT_ID", true},
 		{"NETATMO_CLIENT_SECRET", true},
